@@ -2,4 +2,9 @@ include README.md
 include LICENSE.COMMERCIAL
 include LICENSE.GPL
 
+# YARA rule source files (required when rules.yarc is not pre-built)
+recursive-include apkid/rules *.yara
+
+# Pre-compiled rules (gitignored; must be built with prep-release.py before sdist)
 include apkid/rules/rules.yarc
+

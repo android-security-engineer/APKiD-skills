@@ -36,6 +36,10 @@ def diff(
 ):
     """Compare scan results between two files to find protection differences."""
     try:
+        if not file1.is_file():
+            raise ValueError(f"First target is not a file: {file1}")
+        if not file2.is_file():
+            raise ValueError(f"Second target is not a file: {file2}")
         scanner = make_scanner(
             timeout=timeout,
             typing=typing.value,
@@ -44,11 +48,11 @@ def diff(
             include_types=include_types,
         )
         formatter = AIOutputFormatter()
-        results1 = scanner.scan_file(str(file1))
+        results1 = scanner.scan_file(str(file1), raise_errors=True)
         dict1 = formatter.format_dict(
             results1, str(file1), include_types=include_types
         )
-        results2 = scanner.scan_file(str(file2))
+        results2 = scanner.scan_file(str(file2), raise_errors=True)
         dict2 = formatter.format_dict(
             results2, str(file2), include_types=include_types
         )

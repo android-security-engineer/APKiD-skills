@@ -5,6 +5,8 @@ import json
 import typer
 
 from apkid import __version__
+from apkid.ai_output import SCHEMA_VERSION
+from apkid.cli.common import error_exit
 from apkid.rules import RulesManager
 
 
@@ -15,9 +17,11 @@ def info():
     try:
         rules = rules_mgr.load()
         rules_count = len(set(r.identifier for r in rules))
-    except Exception:
-        rules_count = 0
+    except Exception as e:
+        error_exit(f"Unable to load compiled rules: {e}", type(e).__name__)
     result = {
+        "schema_version": SCHEMA_VERSION,
+        "error": False,
         "version": __version__,
         "rules_sha256": rules_hash,
         "rules_count": rules_count,

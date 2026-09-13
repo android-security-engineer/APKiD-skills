@@ -566,3 +566,69 @@ rule possible_vm_check : anti_vm
     is_dex
     and all of them
 }
+
+rule checks_tracerpid : anti_debug
+{
+  meta:
+    description = "Reads /proc/self/status to check TracerPid (ptrace detection)"
+
+  strings:
+    $s1 = "/proc/self/status"
+    $s2 = "TracerPid"
+
+  condition:
+    is_dex and all of them
+}
+
+rule checks_debug_flag : anti_debug
+{
+  meta:
+    description = "Checks ApplicationInfo.FLAG_DEBUGGABLE"
+
+  strings:
+    $s1 = "FLAG_DEBUGGABLE"
+    $s2 = "isDebuggable"
+    $s3 = "debuggable"
+
+  condition:
+    is_dex and any of them
+}
+
+rule checks_debugger_connected : anti_debug
+{
+  meta:
+    description = "Checks Debug.isDebuggerConnected()"
+
+  strings:
+    $s1 = "isDebuggerConnected"
+    $s2 = "waitingForDebugger"
+
+  condition:
+    is_dex and any of them
+}
+
+rule ptrace_anti_debug : anti_debug
+{
+  meta:
+    description = "References ptrace syscall for anti-debug"
+
+  strings:
+    $s1 = "ptrace"
+
+  condition:
+    is_dex and $s1
+}
+
+rule checks_debugger_via_jdwp : anti_debug
+{
+  meta:
+    description = "Uses JDWP / debugger exception detection"
+
+  strings:
+    $s1 = "JDWP"
+    $s2 = "jdwp"
+    $s3 = "debugger-agent"
+
+  condition:
+    is_dex and any of them
+}

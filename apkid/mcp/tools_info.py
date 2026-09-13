@@ -10,7 +10,7 @@ in the MCP protocol response.
 import json
 
 from apkid import __version__
-from apkid.ai_output import RULE_DESCRIPTIONS
+from apkid.ai_output import RULE_DESCRIPTIONS, SCHEMA_VERSION
 from apkid.rules import RulesManager
 
 
@@ -29,6 +29,7 @@ def info() -> str:
         except Exception:
             rules_count = 0
         return json.dumps({
+            "schema_version": SCHEMA_VERSION,
             "error": False,
             "version": __version__,
             "rules_sha256": rules_hash,
@@ -45,7 +46,7 @@ def list_tags() -> str:
         JSON string with tag list and descriptions
     """
     tags = [{"tag": tag, "description": desc} for tag, desc in sorted(RULE_DESCRIPTIONS.items())]
-    return json.dumps({"error": False, "tags": tags}, ensure_ascii=False, indent=2)
+    return json.dumps({"schema_version": SCHEMA_VERSION, "error": False, "tags": tags}, ensure_ascii=False, indent=2)
 
 
 def rules(action: str = "list") -> str:
@@ -63,6 +64,7 @@ def rules(action: str = "list") -> str:
             yara_files = rules_mgr._collect_yara_files()
             rule_list = sorted(yara_files.keys())
             return json.dumps({
+                "schema_version": SCHEMA_VERSION,
                 "error": False,
                 "rules": rule_list,
                 "count": len(rule_list),
@@ -71,6 +73,7 @@ def rules(action: str = "list") -> str:
             rules_mgr.compile()
             count = rules_mgr.save()
             return json.dumps({
+                "schema_version": SCHEMA_VERSION,
                 "error": False,
                 "compiled": True,
                 "rules_count": count,
@@ -93,14 +96,16 @@ def skills() -> str:
     tool_list = [
         {"name": "scan_file", "description": "Scan an APK, DEX, or ELF file for packer/signer/compiler/protector identifiers"},
         {"name": "batch_scan", "description": "Batch scan files in a directory"},
-        {"name": "diff_files", "description": "Compare scan results between two files"},
-        {"name": "type_file", "description": "Identify file type via magic bytes"},
-        {"name": "info", "description": "Show APKiD version and rules info"},
-        {"name": "list_tags", "description": "List all detection tags and descriptions"},
-        {"name": "rules", "description": "Manage YARA rules (list or compile)"},
-        {"name": "skills", "description": "List all available MCP tools"},
+        {"name": "diff_files", "description": "Compare scan results between two files to find added/removed protections"},
+        {"name": "type_file", "description": "Identify file type (APK/DEX/ELF/etc.) via magic bytes"},
+        {"name": "explain_tag", "description": "Explain a detection tag: category, description, and reverse-engineering advice"},
+        {"name": "info", "description": "Show APKiD version, rules hash, and rules count"},
+        {"name": "list-tags", "description": "List all detection tag categories and their descriptions"},
+        {"name": "rules", "description": "Manage YARA rules: list source files or compile to rules.yarc"},
+        {"name": "skills", "description": "List all available MCP tools (self-discovery)"},
     ]
     return json.dumps({
+        "schema_version": SCHEMA_VERSION,
         "error": False,
         "tools": sorted(tool_list, key=lambda s: s["name"]),
         "total": len(tool_list),

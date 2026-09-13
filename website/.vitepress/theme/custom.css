@@ -1,0 +1,62 @@
+/* APKiD 文档站自定义主题 */
+
+:root {
+  --vp-c-brand-1: #3aa675;
+  --vp-c-brand-2: #2d8060;
+  --vp-c-brand-3: #256b51;
+  --vp-c-brand-soft: rgba(58, 166, 117, 0.14);
+}
+
+/* 自定义容器颜色 */
+:root {
+  --vp-custom-block-info-border: rgba(58, 166, 117, 0.5);
+  --vp-custom-block-info-bg: rgba(58, 166, 117, 0.06);
+  --vp-custom-block-tip-text: #2d8060;
+  --vp-custom-block-tip-border: rgba(58, 166, 117, 0.5);
+  --vp-custom-block-tip-bg: rgba(58, 166, 117, 0.06);
+}
+
+/* 首页统计条 */
+.stats-bar {
+  margin: 2rem 0;
+  padding: 1.5rem 1rem;
+  border-radius: 12px;
+  background: var(--vp-c-bg-soft-up);
+  border: 1px solid var(--vp-c-divider);
+}
+.stats-bar table {
+  margin: 0 !important;
+  width: 100%;
+}
+.stats-bar th,
+.stats-bar td {
+  border: none !important;
+  font-size: 1.1rem;
+  text-align: center;
+}
+.stats-bar td {
+  font-weight: 700;
+  color: var(--vp-c-brand-1);
+}
+
+/* 标签徽章基础样式 */
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.4;
+  vertical-align: middle;
+}
+.badge-pack      { background: #fde2e2; color: #b3261e; }
+.badge-protect   { background: #fce4d6; color: #c63d00; }
+.badge-obfus     { background: #fff4cc; color: #8a6d00; }
+.badge-compiler  { background: #d6e9ff; color: #1a56db; }
+.badge-anti      { background: #ede0ff; color: #6d28d9; }
+.badge-file      { background: #ffe6cc; color: #b35900; }
+.badge-danger    { background: #fde2e2; color: #b3261e; }
+.badge-info      { background: #e0f0e9; color: #2d8060; }
+.badge-success   { background: #dcf5e7; color: #1f7a4e; }
+.badge-warning   { background: #fff0cc; color: #8a6d00; }
+.badge-neutral   { background: #ececec; color: #555; }

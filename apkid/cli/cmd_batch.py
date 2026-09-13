@@ -65,10 +65,12 @@ def batch(
         )
         formatter = AIOutputFormatter()
         target_path = Path(directory)
+        if not target_path.is_dir():
+            raise ValueError(f"Directory is not a directory: {directory}")
         if recursive:
-            files = sorted(target_path.rglob(pattern))
+            files = sorted(p for p in target_path.rglob(pattern) if p.is_file())
         else:
-            files = sorted(target_path.glob(pattern))
+            files = sorted(p for p in target_path.glob(pattern) if p.is_file())
         if not files:
             result = json.dumps(
                 {
@@ -91,7 +93,7 @@ def batch(
                 f"Scanning {len(files)} files...", total=len(files)
             )
             for f in files:
-                results = scanner.scan_file(str(f))
+                results = scanner.scan_file(str(f), raise_errors=True)
                 formatted = formatter.format_dict(
                     results, str(f), include_types=include_types
                 )

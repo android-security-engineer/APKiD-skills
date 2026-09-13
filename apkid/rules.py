@@ -43,17 +43,24 @@ class RulesManager(object):
         self.rules_hash: Optional[str] = None
 
     def load(self) -> yara.Rules:
-        self.rules = yara.load(self.rules_path)
+        if os.path.exists(self.rules_path):
+            self.rules = yara.load(self.rules_path)
+        else:
+            # rules.yarc absent (e.g. fresh uvx install or dev checkout without
+            # running prep-release.py).  Compile from .yara sources into memory
+            # — no disk write required, works even in read-only site-packages.
+            self.rules = self.compile()
         return self.rules
 
     def _collect_yara_files(self) -> Dict[str, str]:
         files = {}
-        for root, dirnames, filenames in os.walk(self.rules_dir):
+        paths = []
+        for root, _, filenames in os.walk(self.rules_dir):
             for filename in filenames:
-                if not filename.lower().endswith(self.rules_ext):
-                    continue
-                path = os.path.join(root, filename)
-                files[path] = path
+                if filename.lower().endswith(self.rules_ext):
+                    paths.append(os.path.join(root, filename))
+        for path in sorted(paths):
+            files[path] = path
         return files
 
     def compile(self) -> yara.Rules:

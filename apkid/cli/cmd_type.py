@@ -16,6 +16,8 @@ def type_file(
 ):
     """Identify the type of a file (APK/DEX/ELF/etc.) via magic bytes."""
     try:
+        if not target.is_file():
+            raise ValueError(f"Target is not a file: {target}")
         with open(target, "rb") as f:
             detected = Scanner._type_file(f)
         if detected is None:

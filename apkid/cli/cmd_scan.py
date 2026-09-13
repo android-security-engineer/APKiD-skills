@@ -48,6 +48,8 @@ def scan(
 ):
     """Scan an APK, DEX, or ELF file for packer/signer/compiler/protector identifiers."""
     try:
+        if not target.is_file():
+            raise ValueError(f"Target is not a file: {target}")
         scanner = make_scanner(
             timeout=timeout,
             typing=typing.value,
@@ -55,7 +57,7 @@ def scan(
             entry_max_scan_size=entry_max_scan_size,
             include_types=include_types,
         )
-        results = scanner.scan_file(str(target))
+        results = scanner.scan_file(str(target), raise_errors=True)
         formatter = AIOutputFormatter()
         formatted = formatter.format(
             results, str(target), fmt=fmt.value, include_types=include_types

@@ -1,10 +1,17 @@
-# APKiD
+# APKiD — Skills for AI Agents
 
-[![PyPI](https://img.shields.io/pypi/v/apkid.svg)](https://pypi.org/project/apkid/)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/apkid.svg)](https://pypi.org/project/apkid/)
-[![PyPI - License](https://img.shields.io/pypi/l/apkid.svg)](https://pypi.org/project/apkid/)
+[![Release](https://img.shields.io/github/v/release/android-security-engineer/APKiD-skills?include_prereleases)](https://github.com/android-security-engineer/APKiD-skills/releases/)
+[![Python](https://img.shields.io/badge/python-%E2%89%A53.8-blue)](https://github.com/android-security-engineer/APKiD-skills)
+[![License](https://img.shields.io/github/license/android-security-engineer/APKiD-skills)](LICENSE.GPL)
 
-APKiD gives you information about how an APK was made. It identifies many compilers, packers, obfuscators, and other weird stuff. It's [_PEiD_](https://www.aldeid.com/wiki/PEiD) for Android.
+APKiD tells you how an APK was made — it identifies compilers, packers, obfuscators, protectors, signers and other artifacts. It's [_PEiD_](https://www.aldeid.com/wiki/PEiD) for Android.
+
+This distribution is built **for AI agents** (Claude Code, Codex, MCP hosts). Everything is exposed through multiple interfaces:
+
+* **YARA rules engine** — the detection logic
+* **`apkid-ai-cli`** — structured JSON CLI for agents
+* **MCP server (`apkid-mcp`)** — tools over the Model Context Protocol
+* **Claude Code Skills** — ready-made `SKILL.md` docs
 
 ![Screen Shot 2019-05-07 at 10 55 00 AM](https://user-images.githubusercontent.com/1356658/57322793-49be9c00-70b9-11e9-84da-1e64d9459a8a.png)
 
@@ -22,14 +29,27 @@ For more information on what this tool can be used for, check out:
 
 ## Installing
 
+Install from source (this repo publishes source tarballs on GitHub Releases, not PyPI):
+
 ```bash
-pip install apkid
+git clone https://github.com/android-security-engineer/APKiD-skills
+cd APKiD-skills
+pip install -e .
 ```
 
 For MCP server support (optional):
 
 ```bash
-pip install apkid[mcp]
+pip install -e ".[mcp]"
+```
+
+Or from a release tarball:
+
+```bash
+wget https://github.com/android-security-engineer/APKiD-skills/releases/download/v4.0.0/apkid-4.0.0.tar.gz
+tar xzf apkid-4.0.0.tar.gz
+cd apkid-4.0.0
+pip install -e .
 ```
 
 ### Docker
@@ -37,18 +57,18 @@ pip install apkid[mcp]
 You can also run APKiD with [Docker](https://www.docker.com/community-edition):
 
 ```bash
-git clone https://github.com/rednaga/APKiD
-cd APKiD/
-docker build . -t rednaga:apkid
+git clone https://github.com/android-security-engineer/APKiD-skills
+cd APKiD-skills/
+docker build . -t apkid
 
 # Classic CLI
 docker/apkid.sh ~/reverse/targets/android/example/example.apk
 
 # AI CLI (structured JSON output)
-docker run --rm -v /path/to/samples:/input:ro rednaga:apkid apkid-ai-cli scan /input/app.apk
+docker run --rm -v /path/to/samples:/input:ro apkid apkid-ai-cli scan /input/app.apk
 
 # MCP server (stdio transport)
-docker run --rm -i rednaga:apkid apkid-mcp
+docker run --rm -i apkid apkid-mcp
 ```
 
 ## Usage — Classic CLI
@@ -59,7 +79,7 @@ usage: apkid [-h] [-v] [-t TIMEOUT] [-r] [--scan-depth SCAN_DEPTH]
              [-o DIR]
              [FILE [FILE ...]]
 
-APKiD - Android Application Identifier v3.1.0
+APKiD - Android Application Identifier v4.0.0
 ```
 
 ## Usage — AI CLI (`apkid-ai-cli`)
@@ -183,7 +203,7 @@ APKiD includes an [MCP (Model Context Protocol)](https://modelcontextprotocol.io
 ### Install
 
 ```bash
-pip install apkid[mcp]
+pip install -e ".[mcp]"
 ```
 
 ### Run
@@ -245,10 +265,10 @@ This repository is also a **Claude Code Skills** package. Install it to add APKi
 
 ```bash
 # Add as a skills source
-claude skills add --source https://github.com/rednaga/AI-APKiD
+claude skills add --source https://github.com/android-security-engineer/APKiD-skills
 
 # Or install locally
-claude skills add --source /path/to/AI-APKiD
+claude skills add --source /path/to/APKiD-skills
 ```
 
 ### Available Skills
@@ -307,8 +327,8 @@ Depending on your needs, you must choose one of them and follow its policies. A 
 If you want to install the latest version in order to make changes, develop your own rules, and so on, simply clone this repository, compile the rules, and install the package in editable mode:
 
 ```bash
-git clone https://github.com/rednaga/APKiD
-cd APKiD
+git clone https://github.com/android-security-engineer/APKiD-skills
+cd APKiD-skills
 python prep-release.py
 pip install -e .[dev,test]
 ```
@@ -355,14 +375,27 @@ APKiD 可以告诉你一个 APK 是如何构建的。它能够识别许多编译
 
 ## 安装
 
+从源码安装（本仓库在 GitHub Releases 发布源码包，而非 PyPI）：
+
 ```bash
-pip install apkid
+git clone https://github.com/android-security-engineer/APKiD-skills
+cd APKiD-skills
+pip install -e .
 ```
 
 如需 MCP 服务器支持（可选）：
 
 ```bash
-pip install apkid[mcp]
+pip install -e ".[mcp]"
+```
+
+或者从发布压缩包安装：
+
+```bash
+wget https://github.com/android-security-engineer/APKiD-skills/releases/download/v4.0.0/apkid-4.0.0.tar.gz
+tar xzf apkid-4.0.0.tar.gz
+cd apkid-4.0.0
+pip install -e .
 ```
 
 ### Docker
@@ -370,18 +403,18 @@ pip install apkid[mcp]
 也可以使用 [Docker](https://www.docker.com/community-edition) 运行 APKiD：
 
 ```bash
-git clone https://github.com/rednaga/APKiD
-cd APKiD/
-docker build . -t rednaga:apkid
+git clone https://github.com/android-security-engineer/APKiD-skills
+cd APKiD-skills/
+docker build . -t apkid
 
 # 经典 CLI
 docker/apkid.sh ~/reverse/targets/android/example/example.apk
 
 # AI CLI（结构化 JSON 输出）
-docker run --rm -v /path/to/samples:/input:ro rednaga:apkid apkid-ai-cli scan /input/app.apk
+docker run --rm -v /path/to/samples:/input:ro apkid apkid-ai-cli scan /input/app.apk
 
 # MCP 服务器（stdio 传输）
-docker run --rm -i rednaga:apkid apkid-mcp
+docker run --rm -i apkid apkid-mcp
 ```
 
 ## 用法 — 经典 CLI
@@ -392,7 +425,7 @@ usage: apkid [-h] [-v] [-t TIMEOUT] [-r] [--scan-depth SCAN_DEPTH]
              [-o DIR]
              [FILE [FILE ...]]
 
-APKiD - Android Application Identifier v3.1.0
+APKiD - Android Application Identifier v4.0.0
 ```
 
 ## 用法 — AI CLI (`apkid-ai-cli`)
@@ -516,7 +549,7 @@ APKiD 包含一个 [MCP（模型上下文协议）](https://modelcontextprotocol
 ### 安装
 
 ```bash
-pip install apkid[mcp]
+pip install -e ".[mcp]"
 ```
 
 ### 运行
@@ -578,10 +611,10 @@ python -m apkid.mcp
 
 ```bash
 # 添加为 skills 源
-claude skills add --source https://github.com/rednaga/AI-APKiD
+claude skills add --source https://github.com/android-security-engineer/APKiD-skills
 
 # 或本地安装
-claude skills add --source /path/to/AI-APKiD
+claude skills add --source /path/to/APKiD-skills
 ```
 
 ### 可用技能
@@ -640,8 +673,8 @@ APKiD 使用**基于 YARA 规则的多层次特征匹配**来识别壳、保护�
 如果你想安装最新版本以进行修改、开发自己的规则等，只需克隆本仓库、编译规则并以可编辑模式安装包：
 
 ```bash
-git clone https://github.com/rednaga/APKiD
-cd APKiD
+git clone https://github.com/android-security-engineer/APKiD-skills
+cd APKiD-skills
 python prep-release.py
 pip install -e .[dev,test]
 ```

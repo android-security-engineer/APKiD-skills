@@ -1,7 +1,7 @@
 const plugin = {
   name: "ai-apkid",
   description: "Android APK/DEX/ELF identifier for AI agents - detect packers, protectors, obfuscators, and more",
-  version: "3.1.0",
+  version: "4.0.0",
   skills: [
     {
       name: "apkid-scan",
@@ -32,6 +32,26 @@ const plugin = {
       name: "apkid-skills",
       path: "skills/apkid-skills/SKILL.md",
       description: "Self-discover available apkid-ai-cli commands and capabilities"
+    },
+    {
+      name: "apkid-info",
+      path: "skills/apkid-info/SKILL.md",
+      description: "Check APKiD version, rules integrity, and installation status"
+    },
+    {
+      name: "apkid-list-tags",
+      path: "skills/apkid-list-tags/SKILL.md",
+      description: "List all available detection tag categories and their descriptions"
+    },
+    {
+      name: "apkid-rules",
+      path: "skills/apkid-rules/SKILL.md",
+      description: "List YARA rule source files or recompile rules.yarc"
+    },
+    {
+      name: "apkid-explain",
+      path: "skills/apkid-explain/SKILL.md",
+      description: "Explain a detection tag and get reverse engineering advice for the identified protection"
     }
   ]
 };

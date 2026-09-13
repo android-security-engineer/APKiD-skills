@@ -1,0 +1,81 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "apkid"
+version = "4.0.0"
+description = "Android Package Identifier — detects packers, protectors, obfuscators, compilers"
+readme = "README.md"
+license = {text = "GPL-3.0-or-later AND LicenseRef-commercial"}
+authors = [
+    {name = "Caleb Fenton & Tim Strazzere", email = "rednaga@protonmail.com"},
+]
+requires-python = ">=3.8"
+keywords = ["android", "analysis", "reversing", "malware", "apk", "dex", "dalvik", "packer"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "License :: Other/Proprietary License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "yara-python-dex>=1.0.1",
+    "typer>=0.12.0",
+    "rich>=13.0.0",
+]
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.5.0,<2.0.0"]
+dev = ["mypy", "pypandoc", "twine"]
+test = [
+    "delayed-assert",
+    "factory_boy",
+    "mock",
+    "pytest",
+    "pytest-cov",
+    "pytest-runner",
+]
+
+[project.scripts]
+apkid = "apkid.main:main"
+apkid-ai-cli = "apkid.cli:ai_cli"
+apkid-mcp = "apkid.mcp:run"
+
+[project.urls]
+Homepage = "https://github.com/rednaga/APKiD"
+Repository = "https://github.com/rednaga/APKiD"
+
+# ---------------------------------------------------------------------------
+# Setuptools configuration
+# ---------------------------------------------------------------------------
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["apkid*"]
+exclude = ["tests*", "docs*"]
+
+[tool.setuptools.package-data]
+apkid = [
+    "rules/**/*.yara",
+    "rules/rules.yarc",
+]
+
+# ---------------------------------------------------------------------------
+# uv configuration
+# ---------------------------------------------------------------------------
+
+[tool.uv]
+# When installing in a uv environment, the mcp extra is needed for MCP server.
+# Example: uv add apkid[mcp]  OR  uvx --from apkid[mcp] apkid-mcp
+package = true

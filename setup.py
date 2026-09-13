@@ -34,7 +34,9 @@ import apkid
 
 here = path.abspath(path.dirname(__file__))
 
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+# README.md is the authoritative doc (pyproject.toml also reads it); avoid
+# depending on a pypandoc-generated README.rst which can go stale.
+with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 
@@ -94,7 +96,7 @@ setup(
     keywords='android analysis reversing malware apk dex dalvik',
     packages=find_packages(exclude=['docs', 'tests']),
     package_data={
-        'rules': package_files('apkid/rules/'),
+        'apkid': package_files('apkid/rules/'),
     },
     include_package_data=True,
     install_requires=install_requires,
@@ -102,7 +104,7 @@ setup(
         'dev': dev_requires,
         'test': test_requires,
         'mcp': [
-            'mcp>=1.0.0,<2.0.0',
+            'mcp>=1.5.0,<2.0.0',
         ],
     },
     zip_safe=False,

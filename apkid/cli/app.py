@@ -15,7 +15,7 @@ console = Console(stderr=True)
 def _register_commands():
     """Import and register all command modules."""
     from apkid.cli import cmd_scan, cmd_batch, cmd_tags, cmd_info, cmd_rules
-    from apkid.cli import cmd_diff, cmd_type, cmd_skills
+    from apkid.cli import cmd_diff, cmd_type, cmd_skills, cmd_explain
 
     app.command()(cmd_scan.scan)
     app.command()(cmd_batch.batch)
@@ -25,6 +25,7 @@ def _register_commands():
     app.command()(cmd_diff.diff)
     app.command(name="type")(cmd_type.type_file)
     app.command()(cmd_skills.skills)
+    app.command()(cmd_explain.explain)
 
 
 _register_commands()

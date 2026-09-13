@@ -11,9 +11,16 @@ in the MCP protocol response.
 import json
 from pathlib import Path
 
-from apkid.ai_output import AIOutputFormatter
+from apkid.ai_output import AIOutputFormatter, SCHEMA_VERSION
 from apkid.cli.common import make_scanner
 from apkid.apkid import Scanner, SCANNABLE_FILE_MAGICS
+
+
+def _err(message: str, detail: str = "") -> str:
+    d = {"schema_version": SCHEMA_VERSION, "error": True, "message": message}
+    if detail:
+        d["detail"] = detail
+    return json.dumps(d)
 
 
 def scan_file(
@@ -36,7 +43,7 @@ def scan_file(
         JSON string with scan results including findings and summary
     """
     if not Path(target).exists():
-        return json.dumps({"error": True, "message": f"File not found: {target}"})
+        return _err(f"File not found: {target}")
     try:
         scanner = make_scanner(
             timeout=timeout,
@@ -50,7 +57,7 @@ def scan_file(
         result_dict = formatter.format_dict(results, target, include_types=include_types)
         return json.dumps(result_dict, ensure_ascii=False)
     except Exception as e:
-        return json.dumps({"error": True, "message": str(e), "detail": type(e).__name__})
+        return _err(str(e), type(e).__name__)
 
 
 def batch_scan(
@@ -78,7 +85,7 @@ def batch_scan(
     """
     dir_path = Path(directory)
     if not dir_path.is_dir():
-        return json.dumps({"error": True, "message": f"Directory not found: {directory}"})
+        return _err(f"Directory not found: {directory}")
     try:
         scanner = make_scanner(
             timeout=timeout,
@@ -89,11 +96,12 @@ def batch_scan(
         )
         formatter = AIOutputFormatter()
         if recursive:
-            files = sorted(dir_path.rglob(pattern))
+            files = sorted(p for p in dir_path.rglob(pattern) if p.is_file())
         else:
-            files = sorted(dir_path.glob(pattern))
+            files = sorted(p for p in dir_path.glob(pattern) if p.is_file())
         if not files:
             return json.dumps({
+                "schema_version": SCHEMA_VERSION,
                 "error": False,
                 "scanned": 0,
                 "results": [],
@@ -105,12 +113,13 @@ def batch_scan(
             result_dict = formatter.format_dict(results, str(f), include_types=include_types)
             all_results.append(result_dict)
         return json.dumps({
+            "schema_version": SCHEMA_VERSION,
             "error": False,
             "scanned": len(all_results),
             "results": all_results,
         }, ensure_ascii=False)
     except Exception as e:
-        return json.dumps({"error": True, "message": str(e), "detail": type(e).__name__})
+        return _err(str(e), type(e).__name__)
 
 
 def diff_files(
@@ -136,7 +145,7 @@ def diff_files(
     """
     for f, label in [(file1, "file1"), (file2, "file2")]:
         if not Path(f).exists():
-            return json.dumps({"error": True, "message": f"{label} not found: {f}"})
+            return _err(f"{label} not found: {f}")
     try:
         scanner = make_scanner(
             timeout=timeout,
@@ -160,6 +169,7 @@ def diff_files(
         findings_removed = [f for f in dict1.get("findings", []) if f["tag"] in removed_tags]
 
         return json.dumps({
+            "schema_version": SCHEMA_VERSION,
             "error": False,
             "file1": file1,
             "file2": file2,
@@ -173,7 +183,7 @@ def diff_files(
             },
         }, ensure_ascii=False, indent=2)
     except Exception as e:
-        return json.dumps({"error": True, "message": str(e), "detail": type(e).__name__})
+        return _err(str(e), type(e).__name__)
 
 
 def type_file(target: str) -> str:
@@ -186,22 +196,24 @@ def type_file(target: str) -> str:
         JSON string with file type information
     """
     if not Path(target).exists():
-        return json.dumps({"error": True, "message": f"File not found: {target}"})
+        return _err(f"File not found: {target}")
     try:
         with open(target, "rb") as f:
             detected = Scanner._type_file(f)
         if detected is None:
             return json.dumps({
+                "schema_version": SCHEMA_VERSION,
                 "error": False,
                 "file": target,
                 "type": None,
                 "message": "Unknown file type — not a recognized Android binary format",
             })
         return json.dumps({
+            "schema_version": SCHEMA_VERSION,
             "error": False,
             "file": target,
             "type": detected,
             "supported_types": sorted(SCANNABLE_FILE_MAGICS.keys()),
         }, ensure_ascii=False, indent=2)
     except Exception as e:
-        return json.dumps({"error": True, "message": str(e), "detail": type(e).__name__})
+        return _err(str(e), type(e).__name__)

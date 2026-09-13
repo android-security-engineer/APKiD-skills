@@ -125,17 +125,21 @@ class Scanner(object):
         for file_path in self._yield_file_paths(dir_path):
             self.scan(file_path)
 
-    def scan_file(self, file_path: str) -> Dict[str, List[yara.Match]]:
+    def scan_file(self, file_path: str, raise_errors: bool = False) -> Dict[str, List[yara.Match]]:
         results = []
         with open(file_path, 'rb') as f:
             try:
-                results: Dict[str, List[yara.Match]] = self.scan_file_obj(f, file_path)
+                results: Dict[str, List[yara.Match]] = self.scan_file_obj(
+                    f, file_path, raise_errors=raise_errors
+                )
             except Exception as e:
+                if raise_errors:
+                    raise
                 stack = traceback.format_exc()
-                print(f"Exception scanning {file_path}: {stack}")
+                print(f"Exception scanning {file_path}: {stack}", file=sys.stderr)
         return results
 
-    def scan_file_obj(self, file: IO, file_path: str = '$FILE$'):
+    def scan_file_obj(self, file: IO, file_path: str = '$FILE$', raise_errors: bool = False):
         if file_path == '$FILE$':
             file_name = file_path
         else:
@@ -150,25 +154,41 @@ class Scanner(object):
             results[file_path] = matches
         if self._is_zipfile(file, file_name):
             with zipfile.ZipFile(file) as zf:
-                zip_results = self._scan_zip(zf)
+                zip_results = self._scan_zip(zf, raise_errors=raise_errors)
             for entry_name, entry_matches in zip_results.items():
                 results[f'{file_path}!{entry_name}'] = entry_matches
         return results
 
-    def _scan_zip(self, zf: zipfile.ZipFile, depth=0) -> Dict[str, List[yara.Match]]:
+    def _scan_zip(
+        self, zf: zipfile.ZipFile, depth=0, raise_errors: bool = False
+    ) -> Dict[str, List[yara.Match]]:
         results: Dict[str, List[yara.Match]] = {}
         for info in zf.infolist():
             if info.is_dir():
                 continue
             try:
-                self._scan_zip_entry(zf, info, results, depth)
+                self._scan_zip_entry(
+                    zf, info, results, depth, raise_errors=raise_errors
+                )
             except Exception as e:
+                if raise_errors:
+                    raise
                 stack = traceback.format_exc()
                 print(f"Exception scanning {info.filename} in {zf.filename}, depth={depth}: {stack}",
                     file=sys.stderr)
         return results
 
-    def _scan_zip_entry(self, zf, info, results, depth) -> None:
+    def _scan_zip_entry(self, zf, info, results, depth, raise_errors: bool = False) -> None:
+        if (
+            self.options.entry_max_scan_size > 0
+            and info.file_size > self.options.entry_max_scan_size
+        ):
+            if self.options.verbose:
+                print(
+                    f"[W] Skipping oversized entry {info.filename} "
+                    f"({info.file_size} bytes)"
+                )
+            return
         try:
             with zf.open(info) as entry:
                 # Python 3.6 zip entries are not seek'able :(
@@ -199,9 +219,16 @@ class Scanner(object):
                         decompressed_data = lzma.decompress(compressed_data)
                         entry_buffer = io.BytesIO(decompressed_data)
                     except Exception as e:
+                        if raise_errors:
+                            raise
                         print(f"[E] Failed to decompress {info.filename}: {e}")
                         return
             else:
+                if raise_errors:
+                    raise NotImplementedError(
+                        f"Unsupported compression method {info.compress_type} "
+                        f"for {info.filename}"
+                    )
                 print(f"[E] Unsupported compression method {info.compress_type} for {info.filename}")
                 return
 
@@ -214,7 +241,9 @@ class Scanner(object):
 
         if depth < self.options.scan_depth and self._is_zipfile(entry_buffer, info.filename):
             with zipfile.ZipFile(entry_buffer) as zip_entry:
-                nested_results = self._scan_zip(zip_entry, depth=depth + 1)
+                nested_results = self._scan_zip(
+                    zip_entry, depth=depth + 1, raise_errors=raise_errors
+                )
                 for nested_name, nested_matches in nested_results.items():
                     results[f'{info.filename}!{nested_name}'] = nested_matches
 

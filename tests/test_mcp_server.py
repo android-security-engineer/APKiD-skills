@@ -31,10 +31,10 @@ class TestMCPServerInstantiation:
         assert "APKiD" in mcp.instructions
 
     def test_mcp_tools_registered(self):
-        """All 8 tools are registered with FastMCP."""
+        """All 9 tools are registered with FastMCP."""
         tools = mcp._tool_manager._tools
         expected = {"scan_file", "batch_scan", "diff_files", "type_file",
-                     "info", "list-tags", "rules", "skills"}
+                     "info", "list-tags", "rules", "skills", "explain_tag"}
         actual = set(tools.keys())
         assert expected == actual, f"Missing tools: {expected - actual}, Extra: {actual - expected}"
 
@@ -67,7 +67,16 @@ class TestMCPToolReturns:
         data = json.loads(result)
         assert "error" in data
         assert "tools" in data
-        assert data["total"] == 8
+        assert data["total"] == 9
+
+    def test_explain_tag_returns_valid_json(self):
+        from apkid.mcp.tools_explain import explain_tag
+        result = explain_tag("packer")
+        data = json.loads(result)
+        assert "error" in data
+        assert data["error"] is False
+        assert "category" in data
+        assert data["category"] == "packer"
 
     def test_rules_list_returns_valid_json(self):
         from apkid.mcp.tools_info import rules
@@ -131,3 +140,56 @@ class TestMCPToolReturns:
                 assert "type" in data
         finally:
             os.unlink(tmp)
+
+    def test_scan_file_with_dex_success_structure(self):
+        """Scan a minimal DEX file — success path returns full JSON envelope."""
+        from apkid.mcp.tools_scan import scan_file
+        with tempfile.NamedTemporaryFile(suffix=".dex", delete=False) as f:
+            f.write(b"dex\n035\x00" + b"\x00" * 92)
+            tmp = f.name
+        try:
+            result = scan_file(tmp)
+            data = json.loads(result)
+            assert data["error"] is False
+            assert data["schema_version"] == "1.0.0"
+            assert data["target"] == tmp
+            assert isinstance(data["findings"], list)
+            assert "summary" in data
+            assert "scanned_at" in data
+        finally:
+            os.unlink(tmp)
+
+    def test_batch_scan_with_dex_file(self):
+        """Batch scan a directory with a DEX file — success path."""
+        from apkid.mcp.tools_scan import batch_scan
+        with tempfile.TemporaryDirectory() as d:
+            f = os.path.join(d, "sample.dex")
+            with open(f, "wb") as fh:
+                fh.write(b"dex\n035\x00" + b"\x00" * 92)
+            result = batch_scan(d, pattern="*.dex")
+            data = json.loads(result)
+            assert data["error"] is False
+            assert data["scanned"] >= 1
+            assert isinstance(data["results"], list)
+            assert data["schema_version"] == "1.0.0"
+
+    def test_diff_files_two_dex(self):
+        """Diff two DEX files — success path returns structured diff."""
+        from apkid.mcp.tools_scan import diff_files
+        with tempfile.NamedTemporaryFile(suffix=".dex", delete=False) as f1:
+            f1.write(b"dex\n035\x00" + b"\x00" * 92)
+            p1 = f1.name
+        with tempfile.NamedTemporaryFile(suffix=".dex", delete=False) as f2:
+            f2.write(b"dex\n035\x00" + b"\x00" * 92)
+            p2 = f2.name
+        try:
+            result = diff_files(p1, p2)
+            data = json.loads(result)
+            assert data["error"] is False
+            assert data["file1"] == p1
+            assert data["file2"] == p2
+            assert "summary" in data
+            assert "added" in data and "removed" in data
+        finally:
+            os.unlink(p1)
+            os.unlink(p2)

@@ -1,0 +1,54 @@
+name: Release
+
+# Build a source tarball (with a freshly compiled rules.yarc) and publish it
+# as a GitHub Release whenever a version tag (vX.Y.Z) is pushed.
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install system dependencies (YARA)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libyara-dev
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install yara-python-dex>=1.0.1
+          pip install -e ".[test]"
+
+      - name: Run tests
+        run: python -m pytest tests/ -q
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build release tarball
+        run: |
+          chmod +x scripts/build-release.sh
+          scripts/build-release.sh "${{ steps.version.outputs.VERSION }}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "dist/apkid-${{ steps.version.outputs.VERSION }}.tar.gz" \
+            --title "APKiD ${{ steps.version.outputs.VERSION }}" \
+            --notes "Source tarball including compiled \`rules.yarc\` — APKiD ${{ steps.version.outputs.VERSION }} (AI-Agent distribution: JSON CLI + MCP server + Claude Code skills)."

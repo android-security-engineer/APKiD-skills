@@ -60,6 +60,40 @@ RULE_DESCRIPTIONS = {
 }
 
 
+CATEGORY_ADVICE = {
+    "packer": "The file is packed. The original DEX is encrypted/compressed and loaded at runtime. Recommend: use a Frida script to dump the decrypted DEX from memory, or find a dedicated unpacker for the identified packer.",
+    "protector": "The file uses a protection SDK. These often combine packing, obfuscation, and anti-debug. Recommend: bypass anti-debug first, then dump from memory.",
+    "obfuscator": "Code has been obfuscated. Class/method names are renamed. Recommend: use deobfuscation tools (e.g. simplify, jadx with rename heuristics), or trace dynamic behavior.",
+    "signer": "This identifies the signing certificate or signer tool. Useful for attribution. If the cert is a debug cert or repack tool cert, the APK may have been tampered with.",
+    "compiler": "Identifies the compiler or build tool. Useful for understanding DEX structure. Non-standard compilers (dexlib2) may indicate repacking or code injection.",
+    "anti_vm": "The app detects virtual machine or emulator environments. Recommend: use a hardware device or patch the detection, or use Frida to hook the detection methods.",
+    "anti_debug": "The app detects debugger attachment. Recommend: use Frida without attaching a debugger, or patch ptrace calls and IsDebuggerPresent checks.",
+    "anti_disassembly": "The app uses anti-disassembly techniques (invalid opcodes, overlapping instructions). Recommend: use a custom DEX parser or patch the invalid regions.",
+    "anti_root": "The app detects rooted devices. Recommend: use MagiskHide/Shamiko, or hook the root detection methods with Frida.",
+    "anti_hook": "The app detects Frida or Xposed. Recommend: use a more stealthy Frida gadget, or hook the detection with another tool first.",
+    "anticheat": "The app uses anti-cheat SDK. Typically checks for memory modifications, speed hacks, and unknown processes. Recommend: analyze in isolated environment.",
+    "dropper": "The app downloads or drops additional payloads at runtime. Recommend: capture network traffic and filesystem changes during execution.",
+    "embedded": "The app contains embedded payloads (DEX/ELF inside resources). Recommend: extract and analyze embedded files separately.",
+    "manipulator": "The APK has been manipulated or repackaged with a tool. May indicate modification of the original. Recommend: compare with original if available.",
+    "abnormal": "The file has abnormal structural characteristics. May indicate manual editing, corruption, or evasion attempts. Recommend: use multiple analysis tools.",
+    "hook": "A hooking framework (Xposed, Frida) is embedded in the APK. This indicates dynamic instrumentation capability or a modified system.",
+    "root": "Root-related libraries or detection code is present. The app may require or check for root access.",
+    "file_type": "File type identification. This is metadata about the format, not a security finding.",
+    "internal": "Internal APKiD analysis artifact. Not a security finding.",
+    "yara_issue": "YARA engine detection issue. The file is recognized by APKiD but not fully parsed by the YARA DEX module.",
+}
+
+
+def error_dict(message: str, detail: str = "") -> Dict[str, Any]:
+    """Build the common JSON error envelope used by AI-facing interfaces."""
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "error": True,
+        "message": message,
+        "detail": detail,
+    }
+
+
 class AIOutputFormatter:
     """Formats APKiD scan results for AI agent consumption."""
 
