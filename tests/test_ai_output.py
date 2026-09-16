@@ -25,12 +25,14 @@
 """
 
 import json
-import os
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
+import click
+
+from typer.main import get_command
 
 from apkid.ai_output import AIOutputFormatter, RULE_DESCRIPTIONS
 
@@ -229,16 +231,21 @@ class TestCLICommands:
 
     def test_scan_help_shows_all_params(self):
         """ai-apkid scan --help shows all Options parameters."""
-        # rich ellipsizes long option names when the inherited terminal is
-        # narrow (e.g. CI), so force a wide COLUMNS for deterministic output.
-        env = {**os.environ, "COLUMNS": "120", "TERM": "xterm"}
-        result = subprocess.run(
-            [sys.executable, "-m", "apkid.cli", "scan", "--help"],
-            capture_output=True, text=True, timeout=30, env=env,
-        )
-        assert result.returncode == 0
+        # Introspect the registered command's options rather than parsing the
+        # rich-rendered --help text: the rendered table ellipsizes long option
+        # names (--typing → --…) when the inherited terminal is narrow (e.g.
+        # CI), which made this assertion flaky. Option names are stable.
+        from apkid.cli.app import app
+
+        scan_cmd = get_command(app).commands["scan"]
+        opts = {
+            str(o)
+            for p in scan_cmd.params
+            for o in (getattr(p, "opts", []) or [])
+            if str(o).startswith("--")
+        }
         for param in ["--typing", "--scan-depth", "--entry-max-scan-size", "--include-types", "--timeout"]:
-            assert param in result.stdout, f"Missing {param} in scan --help"
+            assert param in opts, f"Missing {param} in scan --help"
 
 
 class TestDiffLogic:
