@@ -30,7 +30,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip setuptools wheel
           pip install yara-python-dex>=1.0.1
-          pip install -e ".[test]"
+          pip install -e ".[test,mcp]"
+
+      - name: Compile YARA rules
+        run: python prep-release.py
 
       - name: Run tests
         run: python -m pytest tests/ -q

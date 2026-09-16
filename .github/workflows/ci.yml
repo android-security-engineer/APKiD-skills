@@ -36,7 +36,14 @@ jobs:
         run: python prep-release.py
 
       - name: Run tests
-        run: python -m pytest tests/ -q
+        # MCP SDK requires Python >=3.10; on 3.8/3.9 the optional mcp extra is
+        # skipped, so skip the MCP server tests there too (core still covered).
+        run: |
+          if [ "${{ matrix.python-version }}" = "3.9" ]; then
+            python -m pytest tests/ -q --ignore=tests/test_mcp_server.py
+          else
+            python -m pytest tests/ -q
+          fi
 
   lint:
     runs-on: ubuntu-latest
