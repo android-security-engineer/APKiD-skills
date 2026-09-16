@@ -25,6 +25,7 @@
 """
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -228,9 +229,12 @@ class TestCLICommands:
 
     def test_scan_help_shows_all_params(self):
         """ai-apkid scan --help shows all Options parameters."""
+        # rich ellipsizes long option names when the inherited terminal is
+        # narrow (e.g. CI), so force a wide COLUMNS for deterministic output.
+        env = {**os.environ, "COLUMNS": "120", "TERM": "xterm"}
         result = subprocess.run(
             [sys.executable, "-m", "apkid.cli", "scan", "--help"],
-            capture_output=True, text=True, timeout=30
+            capture_output=True, text=True, timeout=30, env=env,
         )
         assert result.returncode == 0
         for param in ["--typing", "--scan-depth", "--entry-max-scan-size", "--include-types", "--timeout"]:
